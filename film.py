@@ -1,4 +1,5 @@
 import pandas as pd
+import ast
 
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv")
@@ -29,6 +30,26 @@ def NormalizeUsers(writeFile):
 
     if(writeFile):
         userWithMovies.to_csv("film_veri_normalized/user_normalized.csv", index=False)
+
+
+def CreateMatris(writeFile):
+
+    userWmovies = pd.read_csv("film_veri_normalized/user_normalized.csv")
+    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
+    
+    movieList = movies["movieId"].tolist() 
+    userList = userWmovies["userId"].tolist()
+
+    userWmovies["movieId"] = userWmovies["movieId"].apply(ast.literal_eval)
+ 
+    user_movie_matrix = pd.DataFrame(False, index=userList, columns=movieList)
+    for _,row in userWmovies.iterrows():
+        user_movie_matrix.loc[row["userId"], row["movieId"]] = True
+
+    if(writeFile):
+        user_movie_matrix.to_csv("film_veri_normalized/matris.csv", index=False)
+    
+    return user_movie_matrix
 
 
     
