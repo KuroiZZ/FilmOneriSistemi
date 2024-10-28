@@ -1,5 +1,6 @@
 import pandas as pd
 import ast
+from mlxtend.frequent_patterns import fpgrowth, association_rules
 
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv")
@@ -50,6 +51,33 @@ def CreateMatris(writeFile):
         user_movie_matrix.to_csv("film_veri_normalized/matris.csv", index=False)
     
     return user_movie_matrix
+
+
+def CreateRules(minsupport, liftthreshold, writeFile):
+    usermoviematrix = CreateMatris(False)
+    frequent_itemsets = fpgrowth(usermoviematrix, min_support=minsupport, use_colnames=True)
+    rules = association_rules(frequent_itemsets, metric="lift", min_threshold=liftthreshold)
+    if(writeFile):
+        rules.to_csv("Rules/rules.csv", index=False)
+
+
+def frozenset_string_to_list(frozenset_str):
+    items = frozenset_str.replace('frozenset(', '').replace(')', '').strip('{}').split(', ')
+    return list(map(int, items))
+
+
+def ReadRules(movieId):
+    rules = pd.read_csv("Rules/rules.csv")
+
+    rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
+    rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
+    
+
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: x == movieId)]
+    filtered_rules = filtered_rules.sort_values(by="lift", ascending=False)
+    filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
+
+    print(filtered_rules[filtered_rules["consequents_len"] == 1].head(20))
 
 
     
