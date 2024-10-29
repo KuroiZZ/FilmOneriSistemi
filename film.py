@@ -5,63 +5,62 @@ from mlxtend.frequent_patterns import fpgrowth, association_rules
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv")
 
-    Kategoriler = ["Children", "Animation", "Fantasy", "War", "Horror", "Thriller", "Mystery", "Crime", "Sci-Fi", "Musical"]
-    movies_filtered = movies[movies["genres"].str.contains('|'.join(Kategoriler))]
+    categories = ["Children", "Animation", "Fantasy", "War", "Horror", "Thriller", "Mystery", "Crime", "Sci-Fi", "Musical"]
+
+    movies_filtered = movies[movies["genres"].str.contains('|'.join(categories))]
 
     if(writeFile):
         movies_filtered.to_csv("film_veri_normalized/movies_normalized.csv", index=False)
 
 def NormalizeViews(writeFile):
-    rating = pd.read_csv("film_veri/rating.csv", usecols=["userId", "movieId"])
+    views = pd.read_csv("film_veri/rating.csv", usecols=["userId", "movieId"])
 
-    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv", usecols=["movieId"])
+    movie_list = pd.read_csv("film_veri_normalized/movies_normalized.csv")["movieId"].tolist()
 
-    movieList = movies["movieId"].tolist()
-
-    rating_filtered = rating[rating["movieId"].isin(list(movieList))]
+    rating_filtered = views[views["movieId"].isin(list(movie_list))]
 
     if(writeFile):
         rating_filtered.to_csv("film_veri_normalized/views_normalized.csv", index=False)
 
 
 def NormalizeUsers(writeFile):
-    rating = pd.read_csv("film_veri_normalized/views_normalized.csv")
+    views = pd.read_csv("film_veri_normalized/views_normalized.csv")
 
-    userWithMovies = rating.groupby(["userId"], as_index=False).agg({"movieId" : list})
+    user_with_movies = views.groupby(["userId"], as_index=False).agg({"movieId" : list})
 
     if(writeFile):
-        userWithMovies.to_csv("film_veri_normalized/user_normalized.csv", index=False)
+        user_with_movies.to_csv("film_veri_normalized/user_normalized.csv", index=False)
 
 
 def FindPopularFilms(writeFile):
-    Kategoriler = ["Children", "Animation", "Fantasy", "War", "Horror", "Thriller", "Mystery", "Crime", "Sci-Fi", "Musical"]
+    categories = ["Children", "Animation", "Fantasy", "War", "Horror", "Thriller", "Mystery", "Crime", "Sci-Fi", "Musical"]
+
     views = pd.read_csv("film_veri_normalized/views_normalized.csv")
     movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
 
-    popularMoviesDF = pd.DataFrame(columns=["category", "movies"])
+    popular_moviesDF = pd.DataFrame(columns=["category", "movies"])
 
-    for kategori in Kategoriler:
-        moviesNew = movies[movies['genres'].str.contains(kategori)]["movieId"].values.tolist()
-        filteredViews = views[views["movieId"].isin(moviesNew)]
-        popularMovies = filteredViews["movieId"].value_counts().head(50).index.tolist()
-        popularMoviesDF.loc[len(popularMoviesDF)] = [kategori, popularMovies]
+    for category in categories:
+        filtered_movies = movies[movies['genres'].str.contains(category)]["movieId"].values.tolist()
+        filtered_views = views[views["movieId"].isin(filtered_movies)]
+        popular_movies = filtered_views["movieId"].value_counts().head(50).index.tolist()
+        popular_moviesDF.loc[len(popular_moviesDF)] = [category, popular_movies]
 
     if(writeFile):
-        popularMoviesDF.to_csv("film_veri_normalized/popular_movies.csv", index=False)
+        popular_moviesDF.to_csv("film_veri_normalized/popular_movies.csv", index=False)
 
 
 def CreateMatris(writeFile):
-
-    userWmovies = pd.read_csv("film_veri_normalized/user_normalized.csv")
+    user_with_movies = pd.read_csv("film_veri_normalized/user_normalized.csv")
     movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
     
-    movieList = movies["movieId"].tolist() 
-    userList = userWmovies["userId"].tolist()
+    movie_list = movies["movieId"].tolist() 
+    user_list = user_with_movies["userId"].tolist()
 
-    userWmovies["movieId"] = userWmovies["movieId"].apply(ast.literal_eval)
+    user_with_movies["movieId"] = user_with_movies["movieId"].apply(ast.literal_eval)
  
-    user_movie_matrix = pd.DataFrame(False, index=userList, columns=movieList)
-    for _,row in userWmovies.iterrows():
+    user_movie_matrix = pd.DataFrame(False, index=user_list, columns=movie_list)
+    for _,row in user_with_movies.iterrows():
         user_movie_matrix.loc[row["userId"], row["movieId"]] = True
 
     if(writeFile):
@@ -71,8 +70,8 @@ def CreateMatris(writeFile):
 
 
 def CreateRules(minsupport, liftthreshold, writeFile):
-    usermoviematrix = CreateMatris(False)
-    frequent_itemsets = fpgrowth(usermoviematrix, min_support=minsupport, use_colnames=True)
+    user_movie_matrix = CreateMatris(False)
+    frequent_itemsets = fpgrowth(user_movie_matrix, min_support=minsupport, use_colnames=True)
     rules = association_rules(frequent_itemsets, metric="lift", min_threshold=liftthreshold)
     if(writeFile):
         rules.to_csv("Rules/rules.csv", index=False)
@@ -98,14 +97,14 @@ def SuggestFilms(movieId):
     suggestions = []
 
     for suggest in suggestionIds:
-        suggestTitle = movies[movies["movieId"] == suggest]["title"].values[0]
-        suggestions.append(suggestTitle)
+        suggest_title = movies[movies["movieId"] == suggest]["title"].values[0]
+        suggestions.append(suggest_title)
 
     return suggestions
 
 
 
-    
+NormalizeViews(False)
 
 
 
