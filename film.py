@@ -1,6 +1,7 @@
 import pandas as pd
 import ast
 from mlxtend.frequent_patterns import fpgrowth, association_rules
+import tkinter as tk
 
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv")
@@ -22,7 +23,6 @@ def NormalizeViews(writeFile):
     if(writeFile):
         rating_filtered.to_csv("film_veri_normalized/views_normalized.csv", index=False)
 
-
 def NormalizeUsers(writeFile):
     views = pd.read_csv("film_veri_normalized/views_normalized.csv")
 
@@ -30,7 +30,6 @@ def NormalizeUsers(writeFile):
 
     if(writeFile):
         user_with_movies.to_csv("film_veri_normalized/user_normalized.csv", index=False)
-
 
 def FindPopularFilms(writeFile):
     categories = ["Children", "Animation", "Fantasy", "War", "Horror", "Thriller", "Mystery", "Crime", "Sci-Fi", "Musical"]
@@ -48,7 +47,6 @@ def FindPopularFilms(writeFile):
 
     if(writeFile):
         popular_moviesDF.to_csv("film_veri_normalized/popular_movies.csv", index=False)
-
 
 def CreateMatris(writeFile):
     user_with_movies = pd.read_csv("film_veri_normalized/user_normalized.csv")
@@ -68,7 +66,6 @@ def CreateMatris(writeFile):
     
     return user_movie_matrix
 
-
 def CreateRules(minsupport, liftthreshold, writeFile):
     user_movie_matrix = CreateMatris(False)
     frequent_itemsets = fpgrowth(user_movie_matrix, min_support=minsupport, use_colnames=True)
@@ -76,11 +73,9 @@ def CreateRules(minsupport, liftthreshold, writeFile):
     if(writeFile):
         rules.to_csv("Rules/rules.csv", index=False)
 
-
 def frozenset_string_to_list(frozenset_str):
     items = frozenset_str.replace('frozenset(', '').replace(')', '').strip('{}').split(', ')
     return list(map(int, items))
-
 
 def SuggestFilms(movieId):
     rules = pd.read_csv("Rules/rules.csv")
@@ -102,9 +97,40 @@ def SuggestFilms(movieId):
 
     return suggestions
 
+def ScreenSetup():
+    Screen = tk.Tk()
+
+    listbox_frame = tk.Frame(Screen)
+    listbox_frame.pack(pady=10)
+
+    user = pd.read_csv("film_veri_normalized/user_normalized.csv")
+    user_Id = user["userId"].values.tolist()
+
+    user_listbox = tk.Listbox(listbox_frame, height=15, width=10, activestyle="dotbox", font="Helvetica")
+    user_listbox_label = tk.Label(listbox_frame, text = " USERS ")
+    scrollbar = tk.Scrollbar(listbox_frame)
+    
+    i=1
+    for user in user_Id:
+        user_listbox.insert(i, user)
+        i +=1
+
+    user_listbox_label.pack()
+    user_listbox.pack(side=tk.LEFT)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    user_listbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=user_listbox.yview)
 
 
-NormalizeViews(False)
+    Screen.mainloop()
+
+ScreenSetup()
+
+#Screen = tk.Tk()
+#Screen.mainloop()
+
+
 
 
 
