@@ -77,6 +77,14 @@ def frozenset_string_to_list(frozenset_str):
     items = frozenset_str.replace('frozenset(', '').replace(')', '').strip('{}').split(', ')
     return list(map(int, items))
 
+def IdtoTitleConvertor(movieId):
+    moviesdf = pd.read_csv("film_veri_normalized/movies_normalized.csv")
+    movies = []
+    for movie in movieId:
+        movie_title = moviesdf[moviesdf["movieId"] == movie]["title"].values[0]
+        movies.append(movie_title)
+    return movies
+    
 def SuggestFilms(movieId):
     rules = pd.read_csv("Rules/rules.csv")
     movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
@@ -96,6 +104,13 @@ def SuggestFilms(movieId):
         suggestions.append(suggest_title)
 
     return suggestions
+
+def CategoryPopularSuggest(category):
+    movies = pd.read_csv("film_veri_normalized/popular_movies.csv")
+    movies["movies"] = movies["movies"].apply(ast.literal_eval)
+    movies = movies[movies["category"] == category]["movies"].values[0]
+    movies = IdtoTitleConvertor(movies)
+    return movies
 
 def ScreenSetup():
     Screen = tk.Tk()
@@ -125,10 +140,7 @@ def ScreenSetup():
 
     Screen.mainloop()
 
-ScreenSetup()
 
-#Screen = tk.Tk()
-#Screen.mainloop()
 
 
 
