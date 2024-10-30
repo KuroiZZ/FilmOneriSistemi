@@ -85,9 +85,15 @@ def IdtoTitleConvertor(movieId):
         movies.append(movie_title)
     return movies
     
-def SuggestFilms(movieId):
+def CategoryPopularSuggest(category):
+    movies = pd.read_csv("film_veri_normalized/popular_movies.csv")
+    movies["movies"] = movies["movies"].apply(ast.literal_eval)
+    movies = movies[movies["category"] == category]["movies"].values[0]
+    movies = IdtoTitleConvertor(movies)
+    return movies
+
+def MoviePopularSuggest(movieId):
     rules = pd.read_csv("Rules/rules.csv")
-    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
 
     rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
     rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
@@ -96,21 +102,25 @@ def SuggestFilms(movieId):
     filtered_rules = filtered_rules.sort_values(by="lift", ascending=False)
     filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
 
-    suggestionIds = sum(filtered_rules[filtered_rules["consequents_len"] >= 1]["consequents"].head(20), [])
-    suggestions = []
+    isFull = False
+    suggestionIds = []
+    i = 1
+    while(not isFull):
+        beforelength = len(suggestionIds)
+        suggestionIds_new = sum(filtered_rules[filtered_rules["consequents_len"] == i]["consequents"].head(20), [])
+        for Id in suggestionIds_new:
+            suggestionIds.append(Id)
+        if(len(suggestionIds) == 20):
+            isFull = True
+        if(beforelength == len(suggestionIds)):
+            isFull = True
+        i += 1
 
-    for suggest in suggestionIds:
-        suggest_title = movies[movies["movieId"] == suggest]["title"].values[0]
-        suggestions.append(suggest_title)
+    suggestionIds = list(set(suggestionIds))
 
-    return suggestions
+    suggests = IdtoTitleConvertor(suggestionIds)
 
-def CategoryPopularSuggest(category):
-    movies = pd.read_csv("film_veri_normalized/popular_movies.csv")
-    movies["movies"] = movies["movies"].apply(ast.literal_eval)
-    movies = movies[movies["category"] == category]["movies"].values[0]
-    movies = IdtoTitleConvertor(movies)
-    return movies
+    return suggests
 
 def ScreenSetup():
     Screen = tk.Tk()
@@ -139,6 +149,7 @@ def ScreenSetup():
 
 
     Screen.mainloop()
+
 
 
 
