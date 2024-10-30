@@ -116,9 +116,12 @@ def MoviePopularSuggest(movieId):
             isFull = True
         i += 1
 
-    suggestionIds = list(set(suggestionIds))
+    suggestionIds_unique = []
+    for Id in suggestionIds:
+        if(Id not in suggestionIds_unique):
+            suggestionIds_unique.append(Id)
 
-    suggests = IdtoTitleConvertor(suggestionIds)
+    suggests = IdtoTitleConvertor(suggestionIds_unique)
 
     return suggests
 
