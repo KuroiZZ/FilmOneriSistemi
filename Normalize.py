@@ -1,5 +1,4 @@
 import pandas as pd
-import ast
 
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv")

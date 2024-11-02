@@ -1,4 +1,5 @@
 import pandas as pd
+import ast
 from mlxtend.frequent_patterns import fpgrowth, association_rules
 
 def CreateMatris(writeFile):
