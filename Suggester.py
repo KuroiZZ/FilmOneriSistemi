@@ -51,3 +51,42 @@ def MoviePopularSuggest(movieId):
     suggests = IdtoTitleConvertor(suggestionIds_unique)
 
     return suggests
+
+def CategoryPersonalSuggest(category, userId):
+    users = pd.read_csv("film_veri_normalized/user_normalized.csv")
+    user = users[users["userId"] == userId]
+    users = None
+    userMovies = eval(user["movieId"].values[0])
+
+    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
+    movies = movies[movies["genres"].str.contains(category)]
+    movies = movies["movieId"].values.tolist()
+
+    rules = pd.read_csv("Rules/rules.csv")
+
+    rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
+    rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
+    
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: any(movie in x for movie in userMovies))]
+    filtered_rules = filtered_rules[filtered_rules["consequents"].apply(lambda x: set(x).issubset(set(movies)))]
+    filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
+    filtered_rules = filtered_rules.sort_values(by=["lift", "consequents_len"], ascending=[False, True])
+
+    indexes = filtered_rules.index.tolist()
+    isFull = False
+    i = 0
+    suggestion_Ids = []
+    while not isFull and i < len(filtered_rules):
+        a = filtered_rules.loc[indexes[i], "consequents"]
+        for Id in a:
+            if(Id not in suggestion_Ids and Id not in userMovies):
+                suggestion_Ids.append(Id)
+    
+        if(len(suggestion_Ids) >= 20):
+            isFull = True
+        i += 1
+
+    suggestion_titles = IdtoTitleConvertor(suggestion_Ids)
+    
+    return suggestion_titles
+    
