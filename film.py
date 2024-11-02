@@ -87,8 +87,8 @@ def IdtoTitleConvertor(movieId):
     
 def CategoryPopularSuggest(category):
     movies = pd.read_csv("film_veri_normalized/popular_movies.csv")
-    movies["movies"] = movies["movies"].apply(ast.literal_eval)
-    movies = movies[movies["category"] == category]["movies"].values[0]
+    movies = movies[movies["category"] == category]
+    movies = eval(str(movies["movies"].values[0]))
     movies = IdtoTitleConvertor(movies)
     return movies
 
@@ -125,33 +125,15 @@ def MoviePopularSuggest(movieId):
 
     return suggests
 
-def ScreenSetup():
-    Screen = tk.Tk()
-
-    listbox_frame = tk.Frame(Screen)
-    listbox_frame.pack(pady=10)
-
-    user = pd.read_csv("film_veri_normalized/user_normalized.csv")
-    user_Id = user["userId"].values.tolist()
-
-    user_listbox = tk.Listbox(listbox_frame, height=15, width=10, activestyle="dotbox", font="Helvetica")
-    user_listbox_label = tk.Label(listbox_frame, text = " USERS ")
-    scrollbar = tk.Scrollbar(listbox_frame)
-    
-    i=1
-    for user in user_Id:
-        user_listbox.insert(i, user)
-        i +=1
-
-    user_listbox_label.pack()
-    user_listbox.pack(side=tk.LEFT)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-    user_listbox.config(yscrollcommand=scrollbar.set)
-    scrollbar.config(command=user_listbox.yview)
 
 
-    Screen.mainloop()
+
+
+
+
+
+
+
 
 
 
