@@ -2,6 +2,10 @@ import tkinter as tk
 import pandas as pd
 
 def clear_screen():
+    global genres_listbox_exists 
+    global movie_listbox_exists
+    genres_listbox_exists = False
+    movie_listbox_exists = False
     for widget in Screen.winfo_children():
         widget.destroy()
 
