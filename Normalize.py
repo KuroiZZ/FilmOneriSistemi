@@ -54,29 +54,10 @@ def FindPopularFilms(writeFile):
     else:
         print(popular_moviesDF)
 
-def CreateMatris(writeFile):
-    user_with_movies = pd.read_csv("film_veri_normalized/user_normalized.csv")
-    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv")
-    
-    movie_list = movies["movieId"].tolist() 
-    user_list = user_with_movies["userId"].tolist()
-
-    user_with_movies["movieId"] = user_with_movies["movieId"].apply(ast.literal_eval)
- 
-    user_movie_matrix = pd.DataFrame(False, index=user_list, columns=movie_list)
-    for _,row in user_with_movies.iterrows():
-        user_movie_matrix.loc[row["userId"], row["movieId"]] = True
-
-    if(writeFile):
-        user_movie_matrix.to_csv("film_veri_normalized/matris.csv", index=False)
-    else:
-        print(user_movie_matrix)
-    
-    return user_movie_matrix
-
 
 NormalizeMovies(False)
 NormalizeViews(False)
 NormalizeUsers(False)
 FindPopularFilms(False)
-CreateMatris(False)
+
+
