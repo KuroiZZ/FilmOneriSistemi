@@ -20,12 +20,13 @@ def CategoryPopularSuggest(category):
     return movies
 
 def MoviePopularSuggest(movieId):
+    movieId_list = [movieId]
     rules = pd.read_csv("Rules/rules.csv")
 
     rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
     rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
     
-    filtered_rules = rules[rules["antecedents"].apply(lambda x: x == movieId)].copy()
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: x == movieId_list)].copy()
     filtered_rules = filtered_rules.sort_values(by="lift", ascending=False)
     filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
 
