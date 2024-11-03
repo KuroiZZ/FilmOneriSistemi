@@ -16,7 +16,7 @@ def CategoryPopularSuggest(category):
     movies = pd.read_csv("film_veri_normalized/popular_movies.csv")
     movies = movies[movies["category"] == category]
     movies = eval(str(movies["movies"].values[0]))
-    movies = IdtoTitleConvertor(movies)
+    movies = IdtoTitleConvertor(movies[0:20])
     return movies
 
 def MoviePopularSuggest(movieId):
@@ -25,7 +25,7 @@ def MoviePopularSuggest(movieId):
     rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
     rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
     
-    filtered_rules = rules[rules["antecedents"].apply(lambda x: x == movieId)]
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: x == movieId)].copy()
     filtered_rules = filtered_rules.sort_values(by="lift", ascending=False)
     filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
 
@@ -67,7 +67,7 @@ def CategoryPersonalSuggest(category, userId):
     rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
     rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
     
-    filtered_rules = rules[rules["antecedents"].apply(lambda x: any(movie in x for movie in userMovies))]
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: any(movie in x for movie in userMovies))].copy()
     filtered_rules = filtered_rules[filtered_rules["consequents"].apply(lambda x: set(x).issubset(set(movies)))]
     filtered_rules["consequents_len"] = filtered_rules["consequents"].apply(lambda x: len(x))
     filtered_rules = filtered_rules.sort_values(by=["lift", "consequents_len"], ascending=[False, True])
@@ -90,3 +90,38 @@ def CategoryPersonalSuggest(category, userId):
     
     return suggestion_titles
     
+def MoviePersonalSuggest(movieId, userId):
+    users = pd.read_csv("film_veri_normalized/user_normalized.csv")
+    user = users[users["userId"] == userId]
+    users = None
+    userMovies = eval(user["movieId"].values[0])
+
+    movieId_list = [movieId]
+
+    rules = pd.read_csv("Rules/rules.csv")
+
+    rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list)
+    rules["consequents"] = rules["consequents"].apply(frozenset_string_to_list)
+    
+    filtered_rules = rules[rules["antecedents"].apply(lambda x: (any(movie in x for movie in userMovies) and movieId in x) or (movieId_list == x))].copy()
+    a = filtered_rules["consequents"].apply(lambda x: len(x))
+    filtered_rules.loc[:, "consequents_len"] = a
+    filtered_rules = filtered_rules.sort_values(by=["consequents_len", "lift"], ascending=[True, False])
+    
+    indexes = filtered_rules.index.tolist()
+    isFull = False
+    i = 0
+    suggestion_Ids = []
+    while not isFull and i < len(filtered_rules):
+        a = filtered_rules.loc[indexes[i], "consequents"]
+        for Id in a:
+            if(Id not in suggestion_Ids and Id not in userMovies):
+                suggestion_Ids.append(Id)
+    
+        if(len(suggestion_Ids) >= 20):
+            isFull = True
+        i += 1
+
+    suggestion_titles = IdtoTitleConvertor(suggestion_Ids)
+    
+    return suggestion_titles
