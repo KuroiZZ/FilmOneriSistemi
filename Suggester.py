@@ -32,7 +32,6 @@ def CategoryPopularSuggest(category):
     movies = IdtoTitleConvertor(movies[0:20]) #Seçilen ilk 20 film isme dönüştürülür ve döndürülür.
     return movies
 
-#Burda öneri seçerken head(20) yapmışsın çözmeye çalış
 def MoviePopularSuggest(movieId):
     movieId_list = [movieId] #gelen id listeye dönüştürülür
     global rules
@@ -46,9 +45,13 @@ def MoviePopularSuggest(movieId):
     i = 1
     while(not isFull):
         beforelength = len(suggestionIds) #giriş uzunluğu kaydedilir
-        suggestionIds_new = sum(filtered_rules[filtered_rules["consequents_len"] == i]["consequents"].head(20), []) #Öneri uzunluğuna göre sırayla eklenir.
+        suggestionIds_new = sum(filtered_rules[filtered_rules["consequents_len"] == i]["consequents"], []) #Öneri uzunluğuna göre sırayla eklenir.
         for Id in suggestionIds_new:
             suggestionIds.append(Id) #Seçilen öneriler kaydedilir.
+            if(len(suggestionIds) == 20): #Önerilerin boyutu kontrol edilir.
+                isFull = True
+                break
+
         if(len(suggestionIds) == 20): #Önerilerin boyutu kontrol edilir.
             isFull = True
         if(beforelength == len(suggestionIds)): #Önerilerin boyutu değişip değişmediği kontrol edilir.
@@ -64,7 +67,6 @@ def MoviePopularSuggest(movieId):
 
     return suggests
 
-#Burda kurallardaki önerileri filtrelerken a'ya eşitlemişsin düzelt
 def CategoryPersonalSuggest(category, userId):
     global users
     global movies_df
@@ -86,8 +88,8 @@ def CategoryPersonalSuggest(category, userId):
     i = 0
     suggestion_Ids = []
     while not isFull and i < len(filtered_rules):
-        a = filtered_rules.loc[indexes[i], "consequents"] #yeni oluşan kurallardaki öneriler alınır
-        for Id in a: 
+        suggests = filtered_rules.loc[indexes[i], "consequents"] #yeni oluşan kurallardaki öneriler alınır
+        for Id in suggests: 
             if(Id not in suggestion_Ids and Id not in userMovies): #önerilen film zaten eklenmemişse ve kullanıcı tarafından izlenmemişse önerilere eklenir.
                 suggestion_Ids.append(Id)
     
@@ -98,9 +100,7 @@ def CategoryPersonalSuggest(category, userId):
     suggestion_titles = IdtoTitleConvertor(suggestion_Ids) #öneriler id'den isme çevirilir.
     
     return suggestion_titles
-    
-#Burda kurallardaki önerileri filtrelerken a'ya eşitlemişsin düzelt
-#öneri uzunluklarını a'ya eşitlemişsin düzelt    
+       
 def MoviePersonalSuggest(movieId, userId):
     global users
     global rules
@@ -111,8 +111,8 @@ def MoviePersonalSuggest(movieId, userId):
     movieId_list = [movieId]
 
     filtered_rules = rules[rules["antecedents"].apply(lambda x: (any(movie in x for movie in userMovies) and movieId in x) or (movieId_list == x))].copy() #kurallar kullanıcının filmlerini içeriyor mu ve içlerinde seçilen film var mı diye filtrelenir veya seçilen filme eşit mi diye filtrelenir.
-    a = filtered_rules["consequents"].apply(lambda x: len(x)) #önerilerin uzunlukları kaydedilir
-    filtered_rules.loc[:, "consequents_len"] = a #önerilerin uzunlukları dataframe'e eklenir
+    consequents_len = filtered_rules["consequents"].apply(lambda x: len(x)) #önerilerin uzunlukları kaydedilir
+    filtered_rules.loc[:, "consequents_len"] = consequents_len #önerilerin uzunlukları dataframe'e eklenir
     filtered_rules = filtered_rules.sort_values(by=["consequents_len", "lift"], ascending=[True, False]) #kurallar öneri uzunluğu ve lift değerine göre sıralanır.
     
     indexes = filtered_rules.index.tolist()
@@ -120,8 +120,8 @@ def MoviePersonalSuggest(movieId, userId):
     i = 0
     suggestion_Ids = []
     while not isFull and i < len(filtered_rules):
-        a = filtered_rules.loc[indexes[i], "consequents"] #yeni oluşan kurallardaki öneriler alınır
-        for Id in a:
+        suggests = filtered_rules.loc[indexes[i], "consequents"] #yeni oluşan kurallardaki öneriler alınır
+        for Id in suggests:
             if(Id not in suggestion_Ids and Id not in userMovies): #önerilen film zaten eklenmemişse ve kullanıcı tarafından izlenmemişse önerilere eklenir.
                 suggestion_Ids.append(Id)
     
