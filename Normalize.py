@@ -1,5 +1,9 @@
 import pandas as pd
 
+def frozenset_string_to_list(frozenset_str):
+    items = frozenset_str.replace("frozenset(", "").replace(")", "").strip("{}").split(",")
+    return list(map(int, items))
+
 def NormalizeMovies(writeFile):
     movies = pd.read_csv("film_veri/movie.csv") #Var olan filmleri okur
 
@@ -53,10 +57,21 @@ def FindPopularFilms(writeFile):
     else:
         print(popular_moviesDF) #Yeni dataframe terminalde gösterilir
 
+def FindSuggestableFilms(writeFile):
+    rules = pd.read_csv("Rules/rules.csv", usecols = ["antecedents"]) #kurallar dosyası okunur
+    movies = pd.read_csv("film_veri_normalized/movies_normalized.csv") #film dosyası okunur
+    rules["antecedents"] = rules["antecedents"].apply(frozenset_string_to_list) #kurallardaki antecedent'ler frozensetten normal listeye çevrilir
+    unique_antecedents = list(set([item for sublist in rules['antecedents'] for item in sublist])) #antecedentlerden eşsiz olanlar filtrelenir
+    suggestable_films = movies[movies["movieId"].isin(unique_antecedents)] #seçilen antecedentlere göre filmler filtrelernir
+    if(writeFile):
+        suggestable_films.to_csv("film_veri_normalized/suggestable_movies.csv", index=False) #Yeni dataframe dosyaya kaydedilir
+    else:
+        print(suggestable_films) #Yeni dataframe terminalde gösterilir
 
 NormalizeMovies(False)
 NormalizeViews(False)
 NormalizeUsers(False)
 FindPopularFilms(False)
+FindSuggestableFilms(False)
 
 

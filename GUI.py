@@ -4,6 +4,7 @@ import Suggester as sg
 
 movies = pd.read_csv("film_veri_normalized/movies_normalized.csv", usecols=["movieId", "title"]) #Filmler okunur
 users = pd.read_csv("film_veri_normalized/user_normalized.csv") #Kullanıcılar okunur
+suggestable_movies = pd.read_csv("film_veri_normalized/suggestable_movies.csv") #Öneri yaptırabilecek filmler okunur
 
 def clear_screen():
     global genres_listbox_exists 
@@ -200,9 +201,9 @@ def CreateMovieListbox(item_frame, selected_user):
     global genres_listbox_exists 
     global genre_listbox_frame
     global öner_buton
-    global movies
+    global suggestable_movies
 
-    movie_title_list = movies["title"].values.tolist() #film isimleri listeye dönüştürüldü
+    movie_title_list = suggestable_movies["title"].values.tolist() #film isimleri listeye dönüştürüldü
 
     if not movie_listbox_exists: #film listboxunun var olup olmadığı kontrol edilir
         if genres_listbox_exists == True: #tür listboxunun var olup olmadığı kontrol edilir
